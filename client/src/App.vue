@@ -130,8 +130,9 @@
   </v-app>
 </template>
 
-  <script lang="ts" setup>
+<script lang="ts" setup>
   import { onMounted, ref } from 'vue'
+  //  import { useRouter } from 'vue-router'
 
   interface Message {
     text: string
@@ -171,7 +172,7 @@
     settingsDialog.value = value
   }
 
-  const router = window.VueRouter.useRouter()
+  //  const router = useRouter()
 
   const sendMessage = async () => {
     if (!localInput.value) return
@@ -192,7 +193,7 @@
       }
       console.log(payload)
       const response = await window.axios.post(
-        'http://localhost:8000/api/v1/gemini/send-message',
+        'https://chat-hgbd.onrender.com/api/v1/gemini/send-message',
         payload,
         {
           headers: { Authorization: `Bearer ${apiKey}` },
@@ -200,7 +201,7 @@
       )
 
       roomNumber.value = response.data.roomNumber
-      router.push({ path: `/c/${roomNumber.value}` })
+      //  router.push({ path: `/c/${roomNumber.value}` })
 
       const formattedMessage: string = window.marked.marked(response.data.message)
       messages.value.push({ text: '', sender: 'ai' })
@@ -219,7 +220,7 @@
 
   const postGeminiKey = async () => {
     try {
-      const response = await window.axios.post('http://localhost:8000/api/v1/gemini/get-gemini-token', { geminiApiKey: geminiApiKeyInput.value })
+      const response = await window.axios.post('https://chat-hgbd.onrender.com/api/v1/gemini/get-gemini-token', { geminiApiKey: geminiApiKeyInput.value })
       console.log('Gemini API Key set successfully:', response.data)
       localStorage.setItem('geminiApiKey', response.data.token)
       isApiKeyInvalid.value = false
@@ -255,7 +256,7 @@
       await postGeminiKey()
 
       const response = await window.axios.post(
-        'http://localhost:8000/api/v1/gemini/send-message',
+        'https://chat-hgbd.onrender.com/api/v1/gemini/send-message',
         { message: 'Hi' },
         {
           headers: { Authorization: `Bearer ${localStorage.getItem('geminiApiKey')}` },
@@ -278,20 +279,20 @@
   }
 
   const startNewConversation = () => {
-    router.push({ path: '/' })
+    //  router.push({ path: '/' })
     messages.value = []
     canWrite.value = true
   }
 
   const navigateToConversation = (Number: number) => {
     roomNumber.value = Number
-    router.push({ path: `/c/${roomNumber.value}` })
+    //  router.push({ path: `/c/${roomNumber.value}` })
     getAllMessages()
   }
 
   const getAllConversations = async () => {
     try {
-      const response = await window.axios.get('http://localhost:8000/api/v1/gemini/get-all-rooms', {
+      const response = await window.axios.get('https://chat-hgbd.onrender.com/api/v1/gemini/get-all-rooms', {
         headers: { Authorization: `Bearer ${localStorage.getItem('geminiApiKey')}` },
       })
 
@@ -307,7 +308,7 @@
 
   const getAllMessages = async () => {
     try {
-      const response = await window.axios.get(`http://localhost:8000/api/v1/gemini/get-all-messages/${roomNumber.value}`)
+      const response = await window.axios.get(`https://chat-hgbd.onrender.com/api/v1/gemini/get-all-messages/${roomNumber.value}`)
       console.log(response.data.messages)
       messages.value = response.data.messages.map((message: any) => ({ text: window.marked.marked(message.message), sender: message.sender === 'user' ? 'user' : 'ai' }))
     } catch (error) {
@@ -326,116 +327,110 @@
   }
 
   onMounted(async () => {
-    router.push({ path: '/' })
+    //  router.push({ path: '/' })
 
     try {
       await loadScript('https://unpkg.com/axios/dist/axios.min.js')
       if (!window.axios) throw new Error('Axios not loaded')
-
       await loadScript('https://unpkg.com/marked/marked.min.js')
       if (!window.marked) throw new Error('Marked not loaded')
-
-      await loadScript('https://unpkg.com/vue-router@4.4.3/dist/vue-router.global.js')
-      if (!window.VueRouter) throw new Error('VueRouter not loaded')
-
       await getAllConversations()
     } catch (error) {
       console.error('Error loading scripts or libraries:', error)
     }
   })
+</script>
 
-  </script>
-
-  <style>
-    .chat-card {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      height: 89vh;
-      width: 100%;
-      margin: 0;
+<style>
+  .chat-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 89vh;
+    width: 100%;
+    margin: 0;
+  }
+  .user-message {
+    align-self: flex-end;
+    background: rgb(115, 0, 181);
+    color: white;
+    border-radius: 17px 10px 0px 17px !important;
+  }
+  .ai-message {
+    align-self: flex-start;
+    background: #d2d2d2;
+    color: black;
+    border-radius: 10px 17px 17px 0 !important;
+  }
+  .system-message {
+    align-self: center;
+    color: #e92727;
+  }
+  .messages-list {
+    flex-direction: column;
+    display: flex;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+  }
+  .input-area {
+    position: sticky;
+    bottom: 0;
+    padding: 10px;
+    box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+  }
+  .list-message {
+    align-content: center;
+    display: inline-block;
+    max-width: 80%;
+    word-wrap: break-word;
+    padding: 8px;
+    margin: 5px 0;
+  }
+  .faq-list {
+    margin-bottom: 16px;
+  }
+  .faq-button {
+    margin: 5px;
+  }
+  .loader {
+    width: 40px;
+    aspect-ratio: 2;
+    --_g: no-repeat radial-gradient(circle closest-side, #858585 90%, #0000);
+    background: var(--_g) 0% 50%, var(--_g) 50% 50%, var(--_g) 100% 50%;
+    background-size: calc(100% / 3) 50%;
+    animation: l3 1s infinite linear;
+  }
+  @keyframes l3 {
+    20% {
+      background-position: 0% 0%, 50% 50%, 100% 50%;
     }
-    .user-message {
-      align-self: flex-end;
-      background: rgb(115, 0, 181);
-      color: white;
-      border-radius: 17px 10px 0px 17px !important;
+    40% {
+      background-position: 0% 100%, 50% 0%, 100% 50%;
     }
-    .ai-message {
-      align-self: flex-start;
-      background: #d2d2d2;
-      color: black;
-      border-radius: 10px 17px 17px 0 !important;
+    60% {
+      background-position: 0% 50%, 50% 100%, 100% 0%;
     }
-    .system-message {
-      align-self: center;
-      color: #e92727;
+    80% {
+      background-position: 0% 50%, 50% 50%, 100% 100%;
     }
-    .messages-list {
-      flex-direction: column;
-      display: flex;
-      flex-grow: 1;
-      overflow-y: auto;
-      padding-right: 10px;
-    }
-    .input-area {
-      position: sticky;
-      bottom: 0;
-      padding: 10px;
-      box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
-    }
-    .list-message {
-      align-content: center;
-      display: inline-block;
-      max-width: 80%;
-      word-wrap: break-word;
-      padding: 8px;
-      margin: 5px 0;
-    }
-    .faq-list {
-      margin-bottom: 16px;
-    }
-    .faq-button {
-      margin: 5px;
-    }
-    .loader {
-      width: 40px;
-      aspect-ratio: 2;
-      --_g: no-repeat radial-gradient(circle closest-side, #858585 90%, #0000);
-      background: var(--_g) 0% 50%, var(--_g) 50% 50%, var(--_g) 100% 50%;
-      background-size: calc(100% / 3) 50%;
-      animation: l3 1s infinite linear;
-    }
-    @keyframes l3 {
-      20% {
-        background-position: 0% 0%, 50% 50%, 100% 50%;
-      }
-      40% {
-        background-position: 0% 100%, 50% 0%, 100% 50%;
-      }
-      60% {
-        background-position: 0% 50%, 50% 100%, 100% 0%;
-      }
-      80% {
-        background-position: 0% 50%, 50% 50%, 100% 100%;
-      }
-    }
-    .v-navigation-drawer {
-      padding: 15px;
-    }
-    .conversations {
-      padding: 10px;
-    }
-    .new-conversation {
-      width: 100%;
-      border-radius: 30px;
-      background: transparent;
-      border: 2px solid purple;
-      color: purple;
-    }
-    .v-divider {
-      margin-top: 10px;
-      margin-bottom: 10px;
-      border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-    }
-  </style>
+  }
+  .v-navigation-drawer {
+    padding: 15px;
+  }
+  .conversations {
+    padding: 10px;
+  }
+  .new-conversation {
+    width: 100%;
+    border-radius: 30px;
+    background: transparent;
+    border: 2px solid purple;
+    color: purple;
+  }
+  .v-divider {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+</style>
