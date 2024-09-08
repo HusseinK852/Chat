@@ -1,39 +1,25 @@
-import { Request, Response, NextFunction } from "express";
-import AppError from "../utils/appError";
-import * as process from 'process';
+const AppError = require("../utils/appError");
+const process = require('process');
 
-
-interface ErrorWithStatus extends Error {
-  statusCode?: number;
-  status?: string;
-  isOperational?: boolean;
-  keyValue?: Record<string, any>;
-  errors?: Record<string, { message: string }>;
-  code?: number;
-  name: string;
-  path?: string;
-  value?: any;
-}
-
-const handleCastErrorDB = (err: ErrorWithStatus) => {
+const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
   return new AppError(message, 400);
 };
 
-const handleDuplicateFieldsDB = (err: ErrorWithStatus) => {
+const handleDuplicateFieldsDB = (err) => {
   const value = err.keyValue?.name;
   const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
 
-const handleValidationErrorDB = (err: ErrorWithStatus) => {
+const handleValidationErrorDB = (err) => {
   const errors = Object.values(err.errors || {}).map((el) => el.message);
 
   const message = `Invalid input data. ${errors.join(". ")}`;
   return new AppError(message, 400);
 };
 
-const sendErrorDev = (err: ErrorWithStatus, res: Response) => {
+const sendErrorDev = (err, res) => {
   res.status(err.statusCode || 500).json({
     status: err.status,
     error: err,
@@ -42,7 +28,7 @@ const sendErrorDev = (err: ErrorWithStatus, res: Response) => {
   });
 };
 
-const sendErrorProd = (err: ErrorWithStatus, res: Response) => {
+const sendErrorProd = (err, res) => {
   if (err.isOperational) {
     res.status(err.statusCode || 500).json({
       status: err.status,
@@ -57,12 +43,7 @@ const sendErrorProd = (err: ErrorWithStatus, res: Response) => {
   }
 };
 
-export default (
-  err: ErrorWithStatus,
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+module.exports = (err, req, res, next) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || "error";
 

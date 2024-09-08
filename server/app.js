@@ -1,11 +1,11 @@
-import express from "express";
-import cors from "cors";
-import helmet from "helmet";
-import mongoSanitize from "express-mongo-sanitize";
-import xss from "xss";
-import geminiRouter from "./routes/geminiRoutes";
-import globalErrorHandler from "./controllers/errorController";
-import AppError from "./utils/appError";
+const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
+const xss = require("xss");
+const geminiRouter = require("./routes/geminiRoutes");
+const globalErrorHandler = require("./controllers/errorController");
+const AppError = require("./utils/appError");
 
 const app = express();
 
@@ -34,4 +34,4 @@ app.all("*", (req, res, next) => {
 
 app.use(globalErrorHandler);
 
-export default app;
+module.exports = app;

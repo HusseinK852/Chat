@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+const mongoose = require("mongoose");
 
 const messagesSchema = new mongoose.Schema({
   token: {
@@ -25,4 +25,4 @@ const messagesSchema = new mongoose.Schema({
 
 const Messages = mongoose.model("Messages", messagesSchema);
 
-export default Messages;
+module.exports = Messages;
