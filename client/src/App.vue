@@ -118,10 +118,22 @@
             </v-card-text>
             <v-card-actions>
               <v-spacer />
-              <v-btn
-                color="blue darken-1"
-                @click="closeSettingsDialog(false)"
-              >Close</v-btn>
+              <v-btn color="blue darken-1" @click="closeSettingsDialog(false)">Close</v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+
+        <v-dialog v-model="apiKeyDialog" max-width="400">
+          <v-card>
+            <v-card-title>
+              <span class="text-h5">API Key Required</span>
+            </v-card-title>
+            <v-card-text>
+              Please provide the GEMINI API key to continue using the chat.
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
+              <v-btn color="blue darken-1" @click="closeApiKeyDialog">OK</v-btn>
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -150,6 +162,7 @@
   const errorMessage = ref('')
   const roomNumber = ref(null)
   const Conversations = ref([])
+  const apiKeyDialog = ref(false)
 
   const FAQItems = [
     { question: 'What is cybersecurity?' },
@@ -159,6 +172,17 @@
     { question: 'How does machine learning enhance security?' },
     { question: 'What is a zero-trust security model?' },
   ]
+
+  const closeApiKeyDialog = () => {
+    apiKeyDialog.value = false
+  }
+
+  const showApiKeyDialogTemporarily = () => {
+    apiKeyDialog.value = true
+    setTimeout(() => {
+      apiKeyDialog.value = false
+    }, 3000)
+  }
 
   const toggleSidebar = () => {
     sidebarOpen.value = !sidebarOpen.value
@@ -184,7 +208,7 @@
     try {
       const apiKey = localStorage.getItem('geminiApiKey')
       if (!apiKey) {
-        throw new Error('API key not found in localStorage')
+        showApiKeyDialogTemporarily()
       }
 
       const payload: any = { message: localInput.value }
@@ -208,7 +232,7 @@
 
       displayMessageCharByChar(formattedMessage)
     } catch (error) {
-      console.error('Error sending message:', error)
+      showApiKeyDialogTemporarily()
       messages.value.push({ text: 'Error: Failed to send message.', sender: 'system' })
     } finally {
       isSending.value = false
@@ -268,6 +292,7 @@
       errorMessage.value = ''
     } catch (error) {
       console.error('Error testing Gemini API Key:', error)
+      localStorage.removeItem('geminiApiKey')
       isApiKeyInvalid.value = true
       errorMessage.value = 'Invalid API Key. Please provide a valid key.'
     }
@@ -302,7 +327,7 @@
         return dateB - dateA
       })
     } catch (error) {
-      console.error('Error getting conversations:', error)
+      showApiKeyDialogTemporarily()
     }
   }
 

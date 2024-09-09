@@ -140,6 +140,52 @@ exports.sendMessageToGemini = catchAsync(async (req, res, next) => {
   }
 });
 
+exports.testSendMessage = catchAsync(async (req, res, next) => {
+  const prompt = req.body.message;
+  const geminiApiKey = req.geminiApiKey;
+
+  let roomNumber;
+
+  if (req.body.roomNumber) {
+    roomNumber = req.body.roomNumber;
+  } else {
+    roomNumber = await generateRoomNumber();
+  }
+
+  if (!geminiApiKey) {
+    return next(new AppError("GEMINI_API_KEY is missing", 400));
+  }
+
+  if (!prompt) {
+    return next(new AppError("Message is required", 400));
+  }
+
+  const genAI = new GoogleGenerativeAI(geminiApiKey);
+  const model = await genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+  try {
+    const result = await model.generateContent(prompt);
+
+    if (!result || !result.response) {
+      return next(new AppError("Failed to get a response from Gemini", 500));
+    }
+
+    const assistantReply = result.response.text();
+
+    if (typeof assistantReply !== "string") {
+      return next(new AppError("Unexpected response format from Gemini", 500));
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: assistantReply,
+      roomNumber: roomNumber,
+    });
+  } catch (err) {
+    return next(new AppError("Failed to process Gemini response", 500));
+  }
+})
+
 exports.getAllRooms = catchAsync(async (req, res, next) => {
   const geminiApiKey = req.geminiApiKey;
 
